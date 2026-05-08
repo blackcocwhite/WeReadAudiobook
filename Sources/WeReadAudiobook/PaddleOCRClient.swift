@@ -125,6 +125,7 @@ final class PaddleOCRClient {
         process.arguments = [Self.workerScriptURL.path]
         process.standardInput = stdinPipe
         process.standardOutput = stdoutPipe
+        process.standardError = FileHandle.nullDevice
         process.currentDirectoryURL = ProjectPaths.root
 
         try process.run()

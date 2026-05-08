@@ -161,15 +161,12 @@ final class ReadingEngine: ObservableObject {
 
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         audioSaveDirectory = dir
-        print("[Audio] 音频保存目录: \(dir.path)")
     }
 
     private func setupLogFile() {
         guard let dir = audioSaveDirectory else { return }
         logFileURL = dir.appendingPathComponent("log.txt")
-        let header = "=== WeRead Audio Log ===\n\n"
-        try? header.write(to: logFileURL!, atomically: true, encoding: .utf8)
-        print("[Log] 日志文件: \(logFileURL!.path)")
+        try? Data().write(to: logFileURL!)
     }
 
     private func appendLog(_ text: String) {
@@ -189,9 +186,8 @@ final class ReadingEngine: ObservableObject {
         let fileURL = dir.appendingPathComponent("\(audioFileCounter).mp3")
         do {
             try data.write(to: fileURL)
-            print("[Audio] 已保存: \(fileURL.lastPathComponent)")
         } catch {
-            print("[Audio] 保存失败: \(error.localizedDescription)")
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -206,7 +202,6 @@ final class ReadingEngine: ObservableObject {
             } catch {
                 lastError = error
                 retryCount += 1
-                print("[TTS] 合成失败 (第\(retryCount)次): \(error.localizedDescription)")
                 if retryCount < maxRetries {
                     state = .error("合成失败，重试中 (\(retryCount)/\(maxRetries))...")
                     try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -221,9 +216,6 @@ final class ReadingEngine: ObservableObject {
         emptyPageRetryCount += 1
 
         if emptyPageRetryCount <= ReadingPageFlow.maxEmptyPageRetries {
-            let message = "[OCR] 当前页未识别到可朗读文字，重试 \(emptyPageRetryCount)/\(ReadingPageFlow.maxEmptyPageRetries)"
-            print(message)
-            appendLog("\(message)\n")
             try? await Task.sleep(nanoseconds: 800_000_000)
             return true
         }
@@ -252,10 +244,8 @@ final class ReadingEngine: ObservableObject {
 
             let segments = textProcessor.process(blocks: blocks)
             let rawText = TextRecognition.shared.concatenateText(from: blocks)
-            print("[OCR] 原始文本:\n\(rawText)\n---")
-            appendLog("\n--- Page \(number) ---\n[OCR 原文]\n\(rawText)\n")
-
-            print("[OCR] 最终段落: \(segments)")
+            print(rawText)
+            appendLog("\(rawText)\n")
 
             if segments.isEmpty {
                 let shouldRetry = await handleEmptyPage()

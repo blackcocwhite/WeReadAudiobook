@@ -96,8 +96,6 @@ final class TTSService {
         isSynthesizing = true
         defer { isSynthesizing = false }
 
-        print("[TTS] 开始合成: \(text.prefix(50))...")
-
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(configuration.apiKey)", forHTTPHeaderField: "Authorization")
@@ -120,18 +118,14 @@ final class TTSService {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         do {
-            print("[TTS] 发送请求到: \(configuration.apiEndpoint)")
             let (data, response) = try await session.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw TTSError.requestFailed("无效的服务器响应")
             }
 
-            print("[TTS] 收到响应: HTTP \(httpResponse.statusCode), 数据大小: \(data.count) bytes")
-
             guard httpResponse.statusCode == 200 else {
                 let errorBody = String(data: data, encoding: .utf8) ?? "未知错误"
-                print("[TTS] 错误响应: \(errorBody)")
                 throw TTSError.requestFailed("HTTP \(httpResponse.statusCode): \(errorBody)")
             }
 
@@ -143,18 +137,14 @@ final class TTSService {
                   let audio = message["audio"] as? [String: Any],
                   let audioBase64 = audio["data"] as? String,
                   let audioData = Data(base64Encoded: audioBase64) else {
-                print("[TTS] 解析响应失败")
                 throw TTSError.decodingFailed
             }
 
-            print("[TTS] 合成成功，音频大小: \(audioData.count) bytes")
             return audioData
 
         } catch let error as TTSError {
-            print("[TTS] 错误: \(error.localizedDescription)")
             throw error
         } catch {
-            print("[TTS] 网络错误: \(error.localizedDescription)")
             throw TTSError.requestFailed(error.localizedDescription)
         }
     }

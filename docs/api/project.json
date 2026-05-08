@@ -1,0 +1,69 @@
+{
+  "name": "WeReadAudiobook",
+  "type": "macOS menu bar app",
+  "summary": "A macOS app that reads visible WeRead pages aloud using local PaddleOCR, text cleanup, MiMo TTS, audio playback, and automatic page turning.",
+  "platforms": [
+    "macOS 13+"
+  ],
+  "languages": [
+    "Swift",
+    "Python"
+  ],
+  "frameworks": [
+    "SwiftUI",
+    "AVFoundation",
+    "CoreGraphics",
+    "PaddleOCR"
+  ],
+  "main_flow": [
+    "capture WeRead window",
+    "crop reading content area",
+    "run local PaddleOCR",
+    "clean OCR text",
+    "send text to MiMo TTS",
+    "play generated audio",
+    "save MP3 files",
+    "turn page",
+    "prepare next page while current page plays"
+  ],
+  "ocr": {
+    "local": true,
+    "default_profile": "quality",
+    "default_detection_model": "PP-OCRv5_mobile_det",
+    "default_recognition_model": "PP-OCRv5_server_rec",
+    "preprocessing": [
+      "resize",
+      "grayscale",
+      "autocontrast",
+      "contrast enhancement",
+      "sharpening"
+    ],
+    "cloud_ocr": false
+  },
+  "tts": {
+    "provider": "MiMo",
+    "model": "mimo-v2.5-tts",
+    "credentials": "stored locally in app settings"
+  },
+  "permissions": [
+    "Screen Recording",
+    "Accessibility"
+  ],
+  "packaging": {
+    "script": "scripts/package-app.sh",
+    "output": "dist/WeReadAudiobook.app",
+    "notarized": false,
+    "signed": "ad-hoc local signing"
+  },
+  "geo_files": [
+    "llms.txt",
+    "llms-full.txt",
+    "docs/projects/weread-audiobook.md",
+    "docs/api/project.json"
+  ],
+  "privacy_notes": [
+    "OCR screenshots are processed locally.",
+    "OCR text is sent directly to TTS without LLM rewriting.",
+    "MiMo API keys must not be committed."
+  ]
+}

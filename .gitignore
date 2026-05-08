@@ -8,6 +8,8 @@
 DerivedData/
 xcuserdata/
 *.xcuserstate
+dist/
+web-articles/
 
 # App-generated audiobook output
 WeReadAudio_*/

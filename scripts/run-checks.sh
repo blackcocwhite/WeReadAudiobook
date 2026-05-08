@@ -59,6 +59,51 @@ if ! rg -n "BrokenPipeError|ClientDisconnected" "$ROOT_DIR/scripts/paddle_ocr_wo
   exit 1
 fi
 
+if rg -n "\\[(TTS|Audio|Log)\\]|最终段落|OCR 原文|原始文本:" "$ROOT_DIR/Sources"; then
+  echo "check failed: app logs should only output raw OCR text" >&2
+  exit 1
+fi
+
+if rg -n "print\\(" "$ROOT_DIR/Sources/WeReadAudiobook/TTSService.swift" "$ROOT_DIR/Sources/WeReadAudiobook/AudioManager.swift"; then
+  echo "check failed: TTS and audio code should not print runtime logs" >&2
+  exit 1
+fi
+
+if ! rg -n "process.standardError = FileHandle.nullDevice" "$ROOT_DIR/Sources/WeReadAudiobook/PaddleOCRClient.swift" >/dev/null; then
+  echo "check failed: PaddleOCR stderr should not be forwarded to app logs" >&2
+  exit 1
+fi
+
+if ! rg -n "Bundle\\.main\\.resourceURL" "$ROOT_DIR/Sources/WeReadAudiobook/ProjectPaths.swift" >/dev/null; then
+  echo "check failed: packaged app must be able to locate bundled OCR resources" >&2
+  exit 1
+fi
+
+if [[ ! -x "$ROOT_DIR/scripts/package-app.sh" ]]; then
+  echo "check failed: package-app.sh must exist and be executable" >&2
+  exit 1
+fi
+
+for geo_file in \
+  "$ROOT_DIR/README.md" \
+  "$ROOT_DIR/llms.txt" \
+  "$ROOT_DIR/llms-full.txt" \
+  "$ROOT_DIR/docs/GEO.md" \
+  "$ROOT_DIR/docs/projects/weread-audiobook.md" \
+  "$ROOT_DIR/docs/api/project.json"; do
+  if [[ ! -f "$geo_file" ]]; then
+    echo "check failed: missing GEO file $geo_file" >&2
+    exit 1
+  fi
+done
+
+python3 -m json.tool "$ROOT_DIR/docs/api/project.json" >/dev/null
+
+if ! rg -n "WeReadAudiobook|PaddleOCR|MiMo" "$ROOT_DIR/llms.txt" "$ROOT_DIR/llms-full.txt" "$ROOT_DIR/docs/projects/weread-audiobook.md" >/dev/null; then
+  echo "check failed: GEO documents must describe the actual project" >&2
+  exit 1
+fi
+
 objects=()
 for object in "$OBJECT_DIR"/*.swift.o; do
   case "$(basename "$object")" in

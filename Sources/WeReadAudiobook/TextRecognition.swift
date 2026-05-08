@@ -21,7 +21,7 @@ enum OCRError: LocalizedError {
     }
 }
 
-final class TextRecognition {
+final class TextRecognition: @unchecked Sendable {
     static let shared = TextRecognition()
     static let backend: OCRBackend = .paddleOCR
 

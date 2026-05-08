@@ -83,8 +83,7 @@ final class TextProcessor {
 
         result = cleanedLines.joined(separator: "\n")
 
-        // Normalize whitespace and remove newlines (causes TTS pauses)
-        result = result.replacingOccurrences(of: #"\n+"#, with: " ", options: .regularExpression)
+        result = mergeWrappedLines(result)
         result = result.replacingOccurrences(of: #"[ \t]+"#, with: " ", options: .regularExpression)
         result = result.replacingOccurrences(
             of: #"([。！？!?\.])\s*99(?=$|[\s，。！？!?、“”‘’）】》」』])"#,
@@ -93,6 +92,47 @@ final class TextProcessor {
         )
 
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func mergeWrappedLines(_ text: String) -> String {
+        let lines = text
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        guard var result = lines.first else { return "" }
+
+        for line in lines.dropFirst() {
+            result += separatorBetweenWrappedLines(previous: result, next: line)
+            result += line
+        }
+
+        return result
+    }
+
+    private func separatorBetweenWrappedLines(previous: String, next: String) -> String {
+        guard let previousLast = previous.last,
+              let nextFirst = next.first else {
+            return ""
+        }
+
+        if isSentenceEndingPunctuation(previousLast) {
+            return " "
+        }
+
+        if isCJK(previousLast) || isCJK(nextFirst) {
+            return ""
+        }
+
+        return " "
+    }
+
+    private func isSentenceEndingPunctuation(_ char: Character) -> Bool {
+        "。！？!?.".contains(char)
+    }
+
+    private func isCJK(_ char: Character) -> Bool {
+        String(char).range(of: #"\p{Han}"#, options: .regularExpression) != nil
     }
 
     /// Split text into segments suitable for TTS

@@ -28,7 +28,6 @@ final class AudioManager: NSObject, ObservableObject {
         if savedRate > 0 {
             playbackRate = Self.normalizedPlaybackRate(Float(savedRate))
         }
-        print("[Audio] 初始化 playbackRate=\(playbackRate)")
     }
 
     static func normalizedPlaybackRate(_ rate: Float) -> Float {
@@ -128,7 +127,6 @@ final class AudioManager: NSObject, ObservableObject {
         player.play()
         isPlaying = true
         isPaused = false
-        print("[Audio] 开始播放, rate=\(playbackRate)")
     }
 
     private var isQueueDrained: Bool {

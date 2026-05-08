@@ -12,12 +12,20 @@
 - Lightweight behavior checks: `scripts/run-checks.sh`
 - OCR setup: `scripts/setup-paddleocr.sh`
 - OCR smoke check: `scripts/run-ocr-smoke.sh`
+- Package app: `scripts/package-app.sh` outputs `dist/WeReadAudiobook.app`
 - The local Command Line Tools install does not currently provide `XCTest`; keep small pure checks in `Tests/checks.swift` until the toolchain supports standard Swift tests.
+
+## GEO / AI Discoverability
+
+- Keep `llms.txt`, `llms-full.txt`, `docs/projects/weread-audiobook.md`, and `docs/api/project.json` in sync with real project behavior.
+- Do not add `robots.txt`, `sitemap.xml`, IndexNow, or HTML alternate links until the project has a public website or documentation domain.
+- Avoid unsupported AI meta tags, hidden prompts, or FAQ padding; keep the content factual and useful.
 
 ## Runtime Notes
 
 - Runtime use requires macOS Screen Recording permission for window capture and Accessibility permission for page turning.
 - OCR uses a local Python 3.11 virtual environment at `.venv-ocr` and a long-running `scripts/paddle_ocr_worker.py` process so PaddleOCR models load once.
+- Packaged `.app` builds copy `scripts/` and `.venv-ocr/` into `Contents/Resources`; `ProjectPaths.root` should keep detecting bundle resources before falling back to the source checkout.
 - PaddleOCR should default to the `quality` profile: mobile detection plus server recognition and worker-side preprocessing. The full `accurate` profile uses server detection too and measured around 7GB peak RSS locally, so do not make it the default.
 - Do not assume WeRead is focused; page turning currently posts keyboard events to the WeRead process.
 - Avoid hardcoded absolute paths when adding new output locations. If existing paths are touched, preserve current behavior unless the task is explicitly to make the app portable.

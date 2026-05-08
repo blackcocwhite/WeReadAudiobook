@@ -1,0 +1,195 @@
+# WeReadAudiobook Full AI Context
+
+## Summary
+
+WeReadAudiobook is a macOS Swift menu bar app that converts visible WeRead pages into spoken audio. It is built for a user who reads in WeRead and wants the current page read aloud with minimal manual interaction. The app captures the WeRead window, crops to the reading content area, runs local OCR, cleans the OCR result, sends the cleaned text to MiMo TTS, plays the generated audio, saves MP3 files, turns the page, and continues in page order.
+
+The project is intentionally local-first for OCR. It does not upload screenshots to cloud OCR services. MiMo TTS is the only external request path in the main reading flow, and the API key is stored locally in user settings.
+
+## What This Project Is
+
+- A macOS menu bar app.
+- A Swift Package executable target named `WeReadAudiobook`.
+- A WeRead reading assistant that creates spoken audio from the currently visible page.
+- A local OCR pipeline using PaddleOCR through a long-running Python worker.
+- A speech pipeline using MiMo TTS.
+- A packaged `.app` that can be launched from Finder and can include its OCR runtime.
+
+## What This Project Is Not
+
+- It is not a cloud OCR product.
+- It is not a general EPUB parser.
+- It is not a WeRead account scraper.
+- It is not a system-wide screen reader.
+- It is not designed to rewrite, summarize, or correct book content with an LLM.
+
+## Runtime Flow
+
+1. The user opens WeRead and starts reading from the menu bar app.
+2. The app checks macOS Screen Recording permission.
+3. The app checks macOS Accessibility permission for page turning.
+4. The app captures the WeRead window.
+5. The screenshot is cropped to the reading body area.
+6. The cropped image is sent to a local PaddleOCR worker.
+7. OCR text blocks are sorted in reading order.
+8. OCR text is cleaned for speech.
+9. Text segments are sent to MiMo TTS.
+10. Generated audio is saved as MP3 files.
+11. Current page audio is played.
+12. The app turns the page and prepares the next page while the current page is playing.
+
+## OCR Design
+
+OCR is implemented by `PaddleOCRClient` and `scripts/paddle_ocr_worker.py`.
+
+The default profile is `quality`:
+
+- Detection model: `PP-OCRv5_mobile_det`
+- Recognition model: `PP-OCRv5_server_rec`
+- Rationale: server detection measured around 7GB peak RSS locally and can freeze the machine. Mobile detection plus server recognition keeps memory near the lighter profile while improving character recognition quality.
+
+The lower-memory `balanced` profile remains available:
+
+- Detection model: `PP-OCRv5_mobile_det`
+- Recognition model: `PP-OCRv5_mobile_rec`
+
+The full `accurate` profile remains available only as opt-in:
+
+- Detection model: `PP-OCRv5_server_det`
+- Recognition model: `PP-OCRv5_server_rec`
+
+The worker preprocesses images before OCR:
+
+- Resize up to a target width.
+- Convert to grayscale.
+- Apply autocontrast.
+- Increase contrast and sharpness.
+- Save a temporary processed image for OCR.
+
+The worker exits cleanly if the app disconnects, avoiding Python `BrokenPipeError` tracebacks when the user stops reading or quits the app.
+
+## Screenshot Crop Contract
+
+The app must keep the full left and right width of the WeRead window. It must crop the top down to the body text area so tabs, title bars, and chapter titles do not reach OCR. It must crop the bottom enough to exclude the page number band while keeping lower body text.
+
+This contract is protected by checks in `Tests/checks.swift`.
+
+Current crop behavior:
+
+- Keep `x = 0`.
+- Keep full image width.
+- Crop top at about 7% of the image height.
+- Crop bottom at about 2.5% of the image height.
+
+## Text Cleanup Rules
+
+Text cleanup lives in `TextProcessor`.
+
+Important rules:
+
+- Remove standalone page number lines.
+- Remove chapter-title lines like `第一百四十五章 自问`.
+- Remove window titles such as `微信读书` and `WeRead`.
+- Remove isolated punctuation and symbol artifacts.
+- Remove low-confidence tiny OCR fragments such as stray `o` or similar page-edge noise.
+- Correct sentence-ending `99` after punctuation to a closing quote when OCR mistakes a Chinese quote mark.
+- Merge Chinese line wraps without inserting spaces, for example `途\n径` becomes `途径` and `日\n记` becomes `日记`.
+- Keep a natural separator after sentence-ending punctuation across lines.
+- Keep a separating space for Latin or numeric line wraps.
+
+The app logs only raw OCR text during normal operation. It does not print TTS, audio, package path, or final-segment debug logs.
+
+## Audio and TTS
+
+Audio playback is handled by `AudioManager`.
+
+TTS is handled by `TTSService`:
+
+- Default endpoint: `https://token-plan-cn.xiaomimimo.com/v1/chat/completions`
+- Model: `mimo-v2.5-tts`
+- API key storage: local user defaults through app settings.
+- Credentials must not be committed.
+
+Playback supports:
+
+- Play
+- Pause
+- Resume
+- Stop
+- Playback speed clamped from 0.5x to 2.0x
+
+## Reading Flow
+
+The reading loop is page-serial. It plays page N, then turns to page N+1 and prepares that next page while page N is playing. This avoids waiting for OCR and TTS only after playback completes.
+
+The expected lookahead order is:
+
+```text
+playing -> turningPage -> capturing -> recognizing -> synthesizing
+```
+
+Empty OCR pages are retried before stopping to avoid silent page skips.
+
+## Packaging
+
+The package script is `scripts/package-app.sh`.
+
+It builds a release executable and writes:
+
+```text
+dist/WeReadAudiobook.app
+```
+
+The `.app` bundle includes:
+
+- `Contents/MacOS/WeReadAudiobook`
+- `Contents/Resources/scripts/paddle_ocr_worker.py`
+- `Contents/Resources/.venv-ocr`
+- `Contents/Resources/requirements-ocr.txt`
+
+`ProjectPaths.root` detects bundled resources first, then falls back to the source checkout. This allows the app to find OCR resources both when run from the repository and when launched as a packaged `.app`.
+
+The app is locally signed with ad-hoc signing. It is suitable for local use on the current machine. It is not notarized for public macOS distribution.
+
+## Permissions
+
+The app needs:
+
+- Screen Recording permission, because it captures the WeRead window.
+- Accessibility permission, because it sends page-turning keyboard events to WeRead.
+
+Without these permissions, reading cannot start.
+
+## Local Commands
+
+```bash
+scripts/setup-paddleocr.sh
+scripts/run-checks.sh
+scripts/run-ocr-smoke.sh
+swift build
+scripts/package-app.sh
+```
+
+`scripts/run-checks.sh` is the main behavior guard. It checks OCR backend choices, log cleanliness, crop behavior, line-wrap cleanup, packaging resource detection, and other core assumptions.
+
+`scripts/run-ocr-smoke.sh` verifies Swift-to-PaddleOCR integration by generating a test image and recognizing it through the same worker path.
+
+## Security and Privacy
+
+- Do not hardcode API keys.
+- Do not log secrets or full request headers.
+- Do not commit generated audio folders.
+- Do not commit `.venv-ocr`, `.build`, `.swiftpm`, `dist`, or local environment files.
+- OCR screenshots are processed locally.
+- TTS text is sent to the configured MiMo endpoint.
+
+## GEO Notes
+
+This repository implements a repository-level GEO surface:
+
+- `llms.txt` gives a short AI-facing entry point.
+- `llms-full.txt` gives a longer AI-facing context page.
+- `docs/projects/weread-audiobook.md` is a self-contained project knowledge page.
+- `docs/api/project.json` provides structured project metadata.
+
+This repository does not add `robots.txt`, `sitemap.xml`, or IndexNow files because there is no deployed public website in the project. Those should be added only if the project later gets a public domain.

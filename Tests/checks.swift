@@ -114,4 +114,60 @@ let highConfidenceLatinSegments = textProcessor.process(blocks: [
 ])
 expect(highConfidenceLatinSegments == ["AI"], "high-confidence Latin text should be preserved")
 
+textProcessor.clearReadHistory()
+let wrappedChineseSegments = textProcessor.process(blocks: [
+    RecognizedTextBlock(
+        text: "黑皇帝”途",
+        boundingBox: CGRect(x: 0.1, y: 0.8, width: 0.8, height: 0.08),
+        confidence: 0.95
+    ),
+    RecognizedTextBlock(
+        text: "径，选择的是别的道路，以至于现在要搜集过往日",
+        boundingBox: CGRect(x: 0.1, y: 0.7, width: 0.8, height: 0.08),
+        confidence: 0.95
+    ),
+    RecognizedTextBlock(
+        text: "记、亵渎之牌来找回自我。",
+        boundingBox: CGRect(x: 0.1, y: 0.6, width: 0.8, height: 0.08),
+        confidence: 0.95
+    )
+])
+expect(
+    wrappedChineseSegments == ["黑皇帝”途径，选择的是别的道路，以至于现在要搜集过往日记、亵渎之牌来找回自我。"],
+    "Chinese line wraps should not add spoken spaces inside words"
+)
+
+textProcessor.clearReadHistory()
+let sentenceBreakSegments = textProcessor.process(blocks: [
+    RecognizedTextBlock(
+        text: "选择的是别的道路。",
+        boundingBox: CGRect(x: 0.1, y: 0.8, width: 0.8, height: 0.08),
+        confidence: 0.95
+    ),
+    RecognizedTextBlock(
+        text: "以至于现在要搜集过往日记。",
+        boundingBox: CGRect(x: 0.1, y: 0.7, width: 0.8, height: 0.08),
+        confidence: 0.95
+    )
+])
+expect(
+    sentenceBreakSegments == ["选择的是别的道路。 以至于现在要搜集过往日记。"],
+    "sentence-ending line wraps should keep a natural separator"
+)
+
+textProcessor.clearReadHistory()
+let latinWrapSegments = textProcessor.process(blocks: [
+    RecognizedTextBlock(
+        text: "OpenAI",
+        boundingBox: CGRect(x: 0.1, y: 0.8, width: 0.3, height: 0.08),
+        confidence: 0.95
+    ),
+    RecognizedTextBlock(
+        text: "Model",
+        boundingBox: CGRect(x: 0.1, y: 0.7, width: 0.3, height: 0.08),
+        confidence: 0.95
+    )
+])
+expect(latinWrapSegments == ["OpenAI Model"], "Latin line wraps should keep a separating space")
+
 print("checks passed")

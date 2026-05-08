@@ -9,6 +9,11 @@ enum ProjectPaths {
             return URL(fileURLWithPath: override, isDirectory: true)
         }
 
+        if let resourceURL = Bundle.main.resourceURL,
+           fileManager.fileExists(atPath: resourceURL.appendingPathComponent("scripts/paddle_ocr_worker.py").path) {
+            return resourceURL
+        }
+
         let currentDirectory = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
         if fileManager.fileExists(atPath: currentDirectory.appendingPathComponent("Package.swift").path) {
             return currentDirectory

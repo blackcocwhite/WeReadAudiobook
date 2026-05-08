@@ -1,0 +1,36 @@
+# WeReadAudiobook
+
+> macOS menu bar app that reads WeRead pages aloud using local OCR, MiMo TTS, sequential playback, and automatic page turning.
+
+## Links
+
+- [Full AI context](llms-full.txt)
+- [Project knowledge page](docs/projects/weread-audiobook.md)
+- [Structured project data](docs/api/project.json)
+- [Human README](README.md)
+- [Engineering notes](AGENTS.md)
+- [Source code](Sources/WeReadAudiobook/)
+- [Packaging script](scripts/package-app.sh)
+
+## About
+
+WeReadAudiobook is a local macOS audiobook helper for WeRead. It captures the current WeRead window, crops the reading area, runs local PaddleOCR, cleans OCR output for speech, sends the cleaned text to MiMo TTS, plays generated audio, saves MP3 files, and turns pages in order.
+
+The app is designed for private local reading workflows. OCR stays local. OCR text goes directly to TTS without LLM rewriting. MiMo API credentials stay in local app settings and must not be committed.
+
+## Core Capabilities
+
+- Local OCR with PaddleOCR quality profile: mobile detection plus server recognition.
+- OCR image preprocessing before recognition.
+- Reading-area screenshot crop that keeps full width but removes the top UI and bottom pager band.
+- Chinese OCR text cleanup for line wraps, page numbers, isolated artifacts, and common quote mistakes.
+- Page-serial playback with one-page lookahead.
+- Pause, resume, stop, TTS speed, playback speed, and page-turn delay.
+- macOS `.app` packaging with bundled OCR scripts and Python environment.
+
+## Important Constraints
+
+- Requires macOS Screen Recording permission.
+- Requires macOS Accessibility permission for page turning.
+- Requires a local MiMo TTS API key.
+- Generated audio folders, `.venv-ocr`, `.build`, and packaged `dist/` output are local artifacts and should not be committed.
