@@ -20,7 +20,6 @@ The app is built for local, hands-free reading. OCR runs locally; screenshots ar
 - **Playback controls**: start, pause, resume, stop, TTS speed, playback speed, page-turn delay, and max segment length.
 - **Audio export**: saves generated MP3 files under `WeReadAudio_yyyyMMdd_HHmmss/`.
 - **App packaging**: builds a double-clickable macOS `.app` under `dist/`.
-- **GEO files**: includes `llms.txt`, `llms-full.txt`, a project knowledge page, and structured JSON metadata.
 
 ## Requirements
 
@@ -97,9 +96,7 @@ scripts/run-checks.sh          Lightweight behavior checks
 scripts/run-ocr-smoke.sh       Swift-to-OCR smoke test
 scripts/package-app.sh         macOS app packaging
 Tests/checks.swift             Pure Swift regression checks
-docs/                          GEO and project knowledge files
-llms.txt                       AI-facing short overview
-llms-full.txt                  AI-facing detailed context
+docs/                          Project reference files
 ```
 
 ## OCR Strategy
@@ -118,18 +115,6 @@ This profile avoids the high memory cost of full server detection while improvin
 - OCR text is sent to the configured MiMo TTS endpoint.
 - MiMo API keys are stored locally in app settings.
 - Generated audio, `.venv-ocr`, `.build`, and packaged `dist/` output are ignored by Git.
-
-## GEO / AI Discoverability
-
-This repository includes AI-facing project context:
-
-- [`llms.txt`](llms.txt)
-- [`llms-full.txt`](llms-full.txt)
-- [`docs/projects/weread-audiobook.md`](docs/projects/weread-audiobook.md)
-- [`docs/api/project.json`](docs/api/project.json)
-- [`docs/GEO.md`](docs/GEO.md)
-
-No `robots.txt`, `sitemap.xml`, or IndexNow files are included because this repository is not currently a public website.
 
 ## License
 
@@ -159,7 +144,6 @@ WeReadAudiobook 是一个 macOS 菜单栏应用，用来把当前微信读书页
 - **播放控制**：开始、暂停、继续、停止、TTS 语速、播放倍速、翻页延迟、每段最大字数。
 - **音频保存**：生成的 MP3 会保存到 `WeReadAudio_yyyyMMdd_HHmmss/`。
 - **应用打包**：可以打包成可双击启动的 macOS `.app`。
-- **GEO 支持**：包含 `llms.txt`、`llms-full.txt`、项目知识页和结构化 JSON。
 
 ## 运行要求
 
@@ -236,9 +220,7 @@ scripts/run-checks.sh          轻量行为检查
 scripts/run-ocr-smoke.sh       Swift 到 OCR 链路测试
 scripts/package-app.sh         macOS 应用打包脚本
 Tests/checks.swift             Swift 回归检查
-docs/                          GEO 和项目知识文档
-llms.txt                       给 AI 看的简短项目概览
-llms-full.txt                  给 AI 看的完整项目上下文
+docs/                          项目参考文档
 ```
 
 ## OCR 策略
@@ -257,18 +239,6 @@ llms-full.txt                  给 AI 看的完整项目上下文
 - OCR 文字会发送到你配置的 MiMo TTS 接口。
 - MiMo API Key 保存在本地应用设置中。
 - 生成音频、`.venv-ocr`、`.build`、`dist/` 都不会提交到 Git。
-
-## GEO / AI 可见性
-
-项目包含给 AI 读取的上下文文件：
-
-- [`llms.txt`](llms.txt)
-- [`llms-full.txt`](llms-full.txt)
-- [`docs/projects/weread-audiobook.md`](docs/projects/weread-audiobook.md)
-- [`docs/api/project.json`](docs/api/project.json)
-- [`docs/GEO.md`](docs/GEO.md)
-
-目前项目不是公开网站，所以没有添加 `robots.txt`、`sitemap.xml` 或 IndexNow。等以后有官网或文档站，再添加这些才有意义。
 
 ## 许可证
 

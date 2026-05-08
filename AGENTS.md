@@ -15,12 +15,6 @@
 - Package app: `scripts/package-app.sh` outputs `dist/WeReadAudiobook.app`
 - The local Command Line Tools install does not currently provide `XCTest`; keep small pure checks in `Tests/checks.swift` until the toolchain supports standard Swift tests.
 
-## GEO / AI Discoverability
-
-- Keep `llms.txt`, `llms-full.txt`, `docs/projects/weread-audiobook.md`, and `docs/api/project.json` in sync with real project behavior.
-- Do not add `robots.txt`, `sitemap.xml`, IndexNow, or HTML alternate links until the project has a public website or documentation domain.
-- Avoid unsupported AI meta tags, hidden prompts, or FAQ padding; keep the content factual and useful.
-
 ## Runtime Notes
 
 - Runtime use requires macOS Screen Recording permission for window capture and Accessibility permission for page turning.

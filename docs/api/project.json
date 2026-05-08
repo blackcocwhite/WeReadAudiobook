@@ -55,7 +55,7 @@
     "notarized": false,
     "signed": "ad-hoc local signing"
   },
-  "geo_files": [
+  "context_files": [
     "llms.txt",
     "llms-full.txt",
     "docs/projects/weread-audiobook.md",

@@ -84,15 +84,14 @@ if [[ ! -x "$ROOT_DIR/scripts/package-app.sh" ]]; then
   exit 1
 fi
 
-for geo_file in \
+for context_file in \
   "$ROOT_DIR/README.md" \
   "$ROOT_DIR/llms.txt" \
   "$ROOT_DIR/llms-full.txt" \
-  "$ROOT_DIR/docs/GEO.md" \
   "$ROOT_DIR/docs/projects/weread-audiobook.md" \
   "$ROOT_DIR/docs/api/project.json"; do
-  if [[ ! -f "$geo_file" ]]; then
-    echo "check failed: missing GEO file $geo_file" >&2
+  if [[ ! -f "$context_file" ]]; then
+    echo "check failed: missing project context file $context_file" >&2
     exit 1
   fi
 done
@@ -100,7 +99,7 @@ done
 python3 -m json.tool "$ROOT_DIR/docs/api/project.json" >/dev/null
 
 if ! rg -n "WeReadAudiobook|PaddleOCR|MiMo" "$ROOT_DIR/llms.txt" "$ROOT_DIR/llms-full.txt" "$ROOT_DIR/docs/projects/weread-audiobook.md" >/dev/null; then
-  echo "check failed: GEO documents must describe the actual project" >&2
+  echo "check failed: project context files must describe the actual project" >&2
   exit 1
 fi
 
