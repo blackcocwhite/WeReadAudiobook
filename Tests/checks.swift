@@ -64,13 +64,13 @@ let textProcessor = TextProcessor.shared
 textProcessor.clearReadHistory()
 let correctedQuoteSegments = textProcessor.process(blocks: [
     RecognizedTextBlock(
-        text: "“我会把信使的召唤方法给你。99",
+        text: "“请把测试结果保存下来。99",
         boundingBox: CGRect(x: 0.1, y: 0.8, width: 0.8, height: 0.1),
         confidence: 0.9
     )
 ])
 expect(
-    correctedQuoteSegments == ["“我会把信使的召唤方法给你。”"],
+    correctedQuoteSegments == ["“请把测试结果保存下来。”"],
     "sentence-ending 99 should be corrected to a closing quote"
 )
 
@@ -117,41 +117,41 @@ expect(highConfidenceLatinSegments == ["AI"], "high-confidence Latin text should
 textProcessor.clearReadHistory()
 let wrappedChineseSegments = textProcessor.process(blocks: [
     RecognizedTextBlock(
-        text: "黑皇帝”途",
+        text: "这是一段测",
         boundingBox: CGRect(x: 0.1, y: 0.8, width: 0.8, height: 0.08),
         confidence: 0.95
     ),
     RecognizedTextBlock(
-        text: "径，选择的是别的道路，以至于现在要搜集过往日",
+        text: "试文字，用来检查换行合并和标点处",
         boundingBox: CGRect(x: 0.1, y: 0.7, width: 0.8, height: 0.08),
         confidence: 0.95
     ),
     RecognizedTextBlock(
-        text: "记、亵渎之牌来找回自我。",
+        text: "理结果。",
         boundingBox: CGRect(x: 0.1, y: 0.6, width: 0.8, height: 0.08),
         confidence: 0.95
     )
 ])
 expect(
-    wrappedChineseSegments == ["黑皇帝”途径，选择的是别的道路，以至于现在要搜集过往日记、亵渎之牌来找回自我。"],
+    wrappedChineseSegments == ["这是一段测试文字，用来检查换行合并和标点处理结果。"],
     "Chinese line wraps should not add spoken spaces inside words"
 )
 
 textProcessor.clearReadHistory()
 let sentenceBreakSegments = textProcessor.process(blocks: [
     RecognizedTextBlock(
-        text: "选择的是别的道路。",
+        text: "第一句已经结束。",
         boundingBox: CGRect(x: 0.1, y: 0.8, width: 0.8, height: 0.08),
         confidence: 0.95
     ),
     RecognizedTextBlock(
-        text: "以至于现在要搜集过往日记。",
+        text: "第二句应该保留自然停顿。",
         boundingBox: CGRect(x: 0.1, y: 0.7, width: 0.8, height: 0.08),
         confidence: 0.95
     )
 ])
 expect(
-    sentenceBreakSegments == ["选择的是别的道路。 以至于现在要搜集过往日记。"],
+    sentenceBreakSegments == ["第一句已经结束。 第二句应该保留自然停顿。"],
     "sentence-ending line wraps should keep a natural separator"
 )
 

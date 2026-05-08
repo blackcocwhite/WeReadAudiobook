@@ -8,7 +8,6 @@
 - [Project knowledge page](docs/projects/weread-audiobook.md)
 - [Structured project data](docs/api/project.json)
 - [Human README](README.md)
-- [Engineering notes](AGENTS.md)
 - [Source code](Sources/WeReadAudiobook/)
 - [Packaging script](scripts/package-app.sh)
 
